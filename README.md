@@ -79,9 +79,7 @@ endmodule
 
 
 // output Waveform
-<img width="1918" height="1197" alt="image" src="https://github.com/user-attachments/assets/f9a5deeb-52ab-452c-a342-656142c49080" />
-
-
+<img width="1920" height="1200" alt="mem_1kb_ram" src="https://github.com/user-attachments/assets/59f9172d-6c61-4b1b-9d33-607180a1f5c9" />
 # ROM
  // write verilog code for ROM using $random
  ```
@@ -154,8 +152,7 @@ endmodule
  
 
 // output Waveform
-<img width="1918" height="1197" alt="image" src="https://github.com/user-attachments/assets/be6c954d-32b8-41ef-9551-067f8ba7c7ce" />
-
+<img width="1920" height="1200" alt="mem_1kb_rom" src="https://github.com/user-attachments/assets/6bd18c4e-60cc-45e7-84cc-fc0de1c3d9a6" />
 
  # FIFO
  // write verilog code for FIFO
