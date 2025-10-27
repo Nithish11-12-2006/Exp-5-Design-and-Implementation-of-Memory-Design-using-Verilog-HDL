@@ -79,7 +79,8 @@ endmodule
 
 
 // output Waveform
-<img width="1920" height="1200" alt="mem_1kb_ram" src="https://github.com/user-attachments/assets/59f9172d-6c61-4b1b-9d33-607180a1f5c9" />
+<img width="1920" height="1200" alt="mem_1kb_ram" src="https://github.com/user-attachments/assets/d78f8799-8766-4ea3-bd0e-5a5ba6709f4f" />
+
 # ROM
  // write verilog code for ROM using $random
  ```
@@ -148,134 +149,94 @@ module mem_1kb_rom_tb;
 
 endmodule
 ```
- 
- 
-
 // output Waveform
-<img width="1920" height="1200" alt="mem_1kb_rom" src="https://github.com/user-attachments/assets/6bd18c4e-60cc-45e7-84cc-fc0de1c3d9a6" />
+<img width="1920" height="1200" alt="mem_1kb_rom" src="https://github.com/user-attachments/assets/5d250663-5779-41dc-ac2d-320e5367649d" />
 
  # FIFO
  // write verilog code for FIFO
  ```
- `timescale 1ns / 1ps
 module synchronous_fifo #(parameter DEPTH=8, DATA_WIDTH=8) (
-    input clk, 
-    input rst_n,
-    input w_en, 
-    input r_en,
-    input [DATA_WIDTH-1:0] data_in,
-    output reg [DATA_WIDTH-1:0] data_out,
-    output full, 
-    output empty
+ input clk, rst_n,
+ input w_en, r_en,
+ input [DATA_WIDTH-1:0] data_in,
+ output reg [DATA_WIDTH-1:0] data_out,
+ output full, empty
 );
-
-    localparam PTR_WIDTH = $clog2(DEPTH);
-    reg [PTR_WIDTH-1:0] w_ptr, r_ptr;
-    reg [DATA_WIDTH-1:0] fifo[DEPTH-1:0];
-    reg [PTR_WIDTH:0] count; // extra bit to track full/empty properly
-
-    // Reset FIFO
-    always @(posedge clk) begin
-        if (!rst_n) begin
-            w_ptr <= 0;
-            r_ptr <= 0;
-            data_out <= 0;
-            count <= 0;
-        end
-    end
-
-    // Write operation
-    always @(posedge clk) begin
-        if (rst_n && w_en && !full) begin
-            fifo[w_ptr] <= data_in;
-            w_ptr <= (w_ptr + 1) % DEPTH;
-            count <= count + 1;
-        end
-    end
-
-    // Read operation
-    always @(posedge clk) begin
-        if (rst_n && r_en && !empty) begin
-            data_out <= fifo[r_ptr];
-            r_ptr <= (r_ptr + 1) % DEPTH;
-            count <= count - 1;
-        end
-    end
-
-    // Full and empty flags
-    assign full = (count == DEPTH);
-    assign empty = (count == 0);
-
+ 
+ reg [$clog2(DEPTH)-1:0] w_ptr, r_ptr;
+ reg [DATA_WIDTH-1:0] fifo[DEPTH-1:0];
+ 
+ // Set Default values on reset.
+ always@(posedge clk) begin
+   if(!rst_n) begin
+     w_ptr <= 0; r_ptr <= 0;
+     data_out <= 0;
+   end
+ end
+ 
+ // To write data to FIFO
+ always@(posedge clk) begin
+   if(w_en & !full)begin
+     fifo[w_ptr] <= data_in;
+     w_ptr <= w_ptr + 1;
+     end
+ end
+ 
+ // To read data from FIFO
+ always@(posedge clk) begin
+   if(r_en & !empty) begin
+     data_out <= fifo[r_ptr];
+     r_ptr <= r_ptr + 1;
+   end
+ end
+ 
+ assign full = ((w_ptr+1'b1) == r_ptr);
+ assign empty = (w_ptr == r_ptr);
 endmodule
 ```
 
  
  // Test bench
- ```module synchronous_fifo_tb;
-    reg clk_t, rst_t;
-    reg w_en_t, r_en_t;
-    reg [7:0] data_in_t;
-    wire [7:0] data_out_t;
-    wire full_t, empty_t;
+ ```
+module synchronous_fifo_tb;
+reg clk_t, rst_t;
+reg w_en_t, r_en_t;
+reg [7:0] data_in_t;
+wire [7:0] data_out_t;
+wire full_t, empty_t;
 
-    synchronous_fifo #(.DEPTH(8), .DATA_WIDTH(8)) dut (
-        .clk(clk_t),
-        .rst_n(rst_t),
-        .w_en(w_en_t),
-        .r_en(r_en_t),
-        .data_in(data_in_t),
-        .data_out(data_out_t),
-        .full(full_t),
-        .empty(empty_t)
-    );
+synchronous_fifo dut (.clk(clk_t),.rst_n(rst_t),.w_en(w_en_t),.r_en(r_en_t),.data_in(data_in_t),
+.data_out(data_out_t),
+.full(full_t),
+.empty(empty_t)
+);
 
-    always #10 clk_t = ~clk_t; // Clock generation
+always #10 clk_t = ~clk_t;
 
-    initial begin
-        clk_t = 0;
-        rst_t = 0;
-        w_en_t = 0;
-        r_en_t = 0;
-        data_in_t = 0;
+initial begin
+clk_t = 1'b0;
+rst_t = 1'b0;
+w_en_t = 1'b0;
+r_en_t = 1'b0;
+data_in_t = 8'd0;
 
-        #50 rst_t = 1; // Release reset
-
-        // Write data
-        #20 w_en_t = 1; data_in_t = 8'd10;
-        #20 data_in_t = 8'd20;
-        #20 data_in_t = 8'd30;
-        #20 data_in_t = 8'd40;
-        #20 w_en_t = 0;
-
-        // Read data
-        #40 r_en_t = 1;
-        #100 r_en_t = 0;
-
-        #20 $stop;
-    end
+#50 rst_t = 1'b1;
+#20 w_en_t = 1'b1; data_in_t = 8'd10;
+#20 data_in_t = 8'd20;
+#20 data_in_t = 8'd30;
+#20 data_in_t = 8'd40;
+#20 w_en_t = 1'b0;
+#40 r_en_t = 1'b1;
+#100 r_en_t = 1'b0;
+end
 endmodule
 ```
 
 // output Waveform
 
-
-
-
-
-
-
-
-
-
-
-
-<img width="1918" height="1198" alt="image" src="https://github.com/user-attachments/assets/53074e9b-af59-460c-9f47-f1e27a13ec7c" />
-
-
-
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/3ce87987-8c08-4a46-8331-ecfd89230c89" />
 
 # Conclusion
 The RAM, ROM, FIFO memory with read and write operations was designed and successfully simulated using Verilog HDL. The testbench verified both the write and read functionalities by simulating the memory operations and observing the output waveforms. The experiment demonstrates how to implement memory operations in Verilog, effectively modeling both the reading and writing processes.
- 
  
 
